@@ -32,6 +32,75 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const users = [];
+let g_id = 0;
+
+app.post('/signup', (req, res) => {
+  let userIndex = users.findIndex(user => user.username === req.body.username);
+
+  if(userIndex !== -1) {
+    res.sendStatus(400);
+  } else {
+    users.push({
+      "id": g_id,
+      "username": req.body.username,
+      "password": req.body.password,
+      "firstName": req.body.firstName,
+      "lastName": req.body.lastName,
+    });
+
+    console.log(users);
+    
+    g_id += 1;
+
+    res.sendStatus(201);
+  }
+});
+
+app.post('/login', (req, res) => {
+  let userIndex = users.findIndex(user => (user.username === req.body.username && user.password === req.body.password));
+
+  if(userIndex === -1) {
+    res.sendStatus(401);
+  } else {
+    res.status(200).json({
+      "firstName": users[userIndex].firstName,
+      "lastName": users[userIndex].lastName,
+      "id": users[userIndex].id
+    });
+  }
+});
+
+app.get('/data', (req, res) => {
+  let email = req.header.email;
+  let password = req.header.password;
+
+  let userIndex = users.findIndex(user => (user.email === email && user.password === password));
+
+  if(userIndex === -1) {
+    res.sendStatus(401);
+  } else {
+    let usersToReturn = [];
+
+    for(let i = 0; i < users.length; i++) {
+      usersToReturn.push({
+        firstName: users[i].firstName,
+        lastName: users[i].lastName,
+        email: users[i].email
+      });
+    }
+
+    res.status(200).json(usersToReturn);
+  }
+});
+
+
+app.listen(3000, () => {
+  console.log('app listening on port 3000');
+})
 
 module.exports = app;

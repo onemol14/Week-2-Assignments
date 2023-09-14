@@ -41,9 +41,59 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
-
 app.use(bodyParser.json());
+
+let g_id = 2;
+
+const todoItems = [];
+
+app.get('/todos', (req, res) => {
+  res.status(200).json(todoItems);
+});
+
+app.get('/todos/:id', (req, res) => {
+  let id = parseInt(req.params.id);
+
+  let todoIndex = todoItems.findIndex(todoItem => todoItem.id === id);
+
+  if(todoIndex != -1) {
+    res.status(200).json(todoItems[todoIndex]);
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
+
+app.post('/todos', (req, res) => {
+  g_id += 1;
+  todoItems.push({"id": g_id, "title": req.body.title, "description": req.body.description});
+  res.status(201).json({id: g_id});
+});
+
+app.put('/todos/:id', (req, res) => {
+  let id = parseInt(req.params.id);
+  let todoIndex = todoItems.findIndex(todoItem => todoItem.id === id);
+
+  if(todoIndex === -1) {
+    res.status(404).send('item not found');
+  } else {
+    todoItems[todoIndex].title = req.body.title;
+    todoItems[todoIndex].description = req.body.description;
+    res.status(200).json({id: id});
+  }
+
+});
+
+app.delete('/todos/:id', (req, res) => {
+  let id = parseInt(req.params.id);
+  let todoIndex = todoItems.find(todoItem => todoItem.id === id);
+
+  if(todoIndex === -1) {
+    res.status(404).send('item not found');
+  } else {
+    todoItems.splice(todoIndex, 1);
+    res.status(200).send('Item has been deleted');
+  }
+});
 
 module.exports = app;
